@@ -168,7 +168,7 @@ CFG = {
     'vases_velocity_threshold': 1e-4,  # Ignore very small velocities
 
     # Pillars (immovable obstacles we should not touch)
-    'pillars_num': 1,  # Number of pillars in the world
+    'pillars_num': 0,  # Number of pillars in the world
     'pillars_placements': None,  # Pillars placements list (defaults to full extents)
     'pillars_locations': [],  # Fixed locations to override placements
     'pillars_keepout': 0.3,  # Radius for placement of pillars
