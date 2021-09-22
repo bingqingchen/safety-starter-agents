@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 import gym 
 import safety_gym
+from configs.main_cfg import CFG
+import ipdb as pdb
+from safety_gym.envs.engine import Engine
+from gym.envs.registration import register
 import safe_rl
 from safe_rl.utils.run_utils import setup_logger_kwargs
 from safe_rl.utils.mpi_tools import mpi_fork
@@ -42,9 +46,16 @@ def main(robot, task, algo, seed, exp_name, cpu):
 
     # Algo and Env
     algo = eval('safe_rl.'+algo)
-    env_name = 'Safexp-'+robot+task+'-v0'
+    env_name = 'Safexp-'+robot+task+'-v1'
 
-    algo(env_fn=lambda: gym.make(env_name),
+    env = Engine(config=CFG) 
+
+    register(id=env_name,
+         entry_point='safety_gym.envs.mujoco:Engine',
+         kwargs={'config': CFG})
+
+    #algo(env_fn=lambda: gym.make(env_name),
+    algo(env_fn=lambda: env,
          ac_kwargs=dict(
              hidden_sizes=(256, 256),
             ),
@@ -58,7 +69,6 @@ def main(robot, task, algo, seed, exp_name, cpu):
          )
 
 
-
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
@@ -68,6 +78,7 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--exp_name', type=str, default='')
     parser.add_argument('--cpu', type=int, default=1)
+    parser.add_argument('--config', type=str, default='../configs/main_cfg.py')
     args = parser.parse_args()
     exp_name = args.exp_name if not(args.exp_name=='') else None
     main(args.robot, args.task, args.algo, args.seed, exp_name, args.cpu)
