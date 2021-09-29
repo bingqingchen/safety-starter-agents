@@ -12,7 +12,7 @@ DIV_LINE_WIDTH = 50
 exp_idx = 0
 units = dict()
 
-def plot_data(data, xaxis='Epoch', value="AverageEpRet", 
+def plot_data(data, xaxis='Epoch', value=["AverageEpRet","AverageEpCost"], 
               condition="Condition1", smooth=1, paper=False,
               hidelegend=False, title=None, savedir=None, 
               clear_xticks=False, **kwargs):
@@ -119,7 +119,10 @@ def plot_data(data, xaxis='Epoch', value="AverageEpRet",
         # y, xmin, xmax, colors='k', linestyles='solid', label='',
         plt.hlines(y_horiz, 0, xmax, colors='red', linestyles='dashed', label='limit')
 
-    fname = osp.join(savedir, title+'_'+value).lower()
+    if title == '':
+        title = savedir.split('/')[-2]
+
+    fname = osp.join(savedir, title+'_'+value)#.lower()
 
     if clear_xticks:
         x, _ = plt.xticks()
@@ -186,10 +189,12 @@ def get_datasets(logdir, condition=None):
                 print('Could not read from %s'%os.path.join(root,'progress.txt'))
                 continue
             performance = 'AverageTestEpRet' if 'AverageTestEpRet' in exp_data else 'AverageEpRet'
+            cost = 'AverageTestEpCost' if 'AverageTestEpCost' in exp_data else 'AverageEpCost'
             exp_data.insert(len(exp_data.columns),'Unit',unit)
             exp_data.insert(len(exp_data.columns),'Condition1',condition1)
             exp_data.insert(len(exp_data.columns),'Condition2',condition2)
             exp_data.insert(len(exp_data.columns),'Performance',exp_data[performance])
+            exp_data.insert(len(exp_data.columns),'Cost',exp_data[cost])
             datasets.append(exp_data)
     return datasets
 
@@ -253,6 +258,7 @@ def make_plots(all_logdirs, legend=None, xaxis=None, values=None, count=False,
     values = values if isinstance(values, list) else [values]
     condition = 'Condition2' if count else 'Condition1'
     estimator = getattr(np, estimator)      # choose what to show on main curve: mean? max? min?
+
     for value in values:
         plt.figure()
         plot_data(data, xaxis=xaxis, value=value, condition=condition, 
@@ -270,7 +276,7 @@ def main():
     parser.add_argument('logdir', nargs='*')
     parser.add_argument('--legend', '-l', nargs='*')
     parser.add_argument('--xaxis', '-x', default='TotalEnvInteracts')
-    parser.add_argument('--value', '-y', default='Performance', nargs='*')
+    parser.add_argument('--value', '-y', default=['Performance','Cost'], nargs='*')
     parser.add_argument('--count', action='store_true')
     parser.add_argument('--smooth', '-s', type=int, default=1)
     parser.add_argument('--select', nargs='*')
@@ -280,7 +286,7 @@ def main():
     parser.add_argument('--hidelegend', '-hl', action='store_true')
     parser.add_argument('--title', type=str, default='')
     parser.add_argument('--savedir', type=str, default='')
-    parser.add_argument('--dont_show', action='store_true')
+    parser.add_argument('--dont_show', action='store_true', default=True)
     parser.add_argument('--clearx', action='store_true')
     args = parser.parse_args()
     """
