@@ -10,7 +10,7 @@ from safe_rl.utils.run_utils import setup_logger_kwargs
 from safe_rl.utils.mpi_tools import mpi_fork
 
 
-def main(robot, task, algo, seed, exp_name, cpu):
+def main(robot, task, algo, seed, exp_name, cost_limit, cpu):
 
     # Verify experiment
     robot_list = ['point', 'car', 'doggo']
@@ -25,7 +25,6 @@ def main(robot, task, algo, seed, exp_name, cpu):
     assert robot.lower() in robot_list, "Invalid robot"
 
     # Hyperparameters
-    exp_name = algo + '_' + robot + task
     if robot=='Doggo':
         num_steps = 1e8
         steps_per_epoch = 60000
@@ -35,7 +34,7 @@ def main(robot, task, algo, seed, exp_name, cpu):
     epochs = int(num_steps / steps_per_epoch)
     save_freq = 50
     target_kl = 0.01
-    cost_lim = 25
+    cost_lim = cost_limit
 
     # Fork for parallelizing
     mpi_fork(cpu)
@@ -77,8 +76,9 @@ if __name__ == '__main__':
     parser.add_argument('--algo', type=str, default='ppo')
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--exp_name', type=str, default='')
+    parser.add_argument('--cost_lim', type=int, default=25)
     parser.add_argument('--cpu', type=int, default=1)
     parser.add_argument('--config', type=str, default='../configs/main_cfg.py')
     args = parser.parse_args()
     exp_name = args.exp_name if not(args.exp_name=='') else None
-    main(args.robot, args.task, args.algo, args.seed, exp_name, args.cpu)
+    main(args.robot, args.task, args.algo, args.seed, exp_name, args.cost_lim, args.cpu)
